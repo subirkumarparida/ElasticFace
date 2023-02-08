@@ -1,2 +1,4 @@
 # ElasticFace
-Faces distributed on a hypersphere for learning
+
+## Description of files:
+1- 
