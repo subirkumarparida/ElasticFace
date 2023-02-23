@@ -5,13 +5,7 @@
 - Testing dataset: LFW dataset.
 
 ## Description of files
-1 - **data_preprocess.ipynb:** Data Pre-processing of MS1M-ArcFace dataset.
-
-2 - **network.ipynb:** Network Architecture based on ResNet.
-
-3 - **training.ipynb:** [*Work in Progress*] Training the model.
-
-4 - **ref.ipynb:** [*Obsolete - Please ignore*] Overall model ideation.
+- **training.ipynb:** [*Work in Progress*] Training the model.
 
 ## Output
 ![a](https://user-images.githubusercontent.com/42779970/220693992-e7f96076-dcea-4b2c-9691-42bf643f3ca1.jpg)
