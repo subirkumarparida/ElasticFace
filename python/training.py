@@ -19,7 +19,6 @@ from torchvision import transforms
 from torchvision.transforms import ToTensor
 from torchvision.datasets import ImageFolder
 from torchvision.datasets.utils import download_url
-#from torch.utils.data.dataloader import DataLoader
 from torch.utils.data import random_split, DataLoader, Dataset
 from torchsummary import summary
 
@@ -29,31 +28,30 @@ from mxnet import recordio
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-random_seed = 42
-torch.manual_seed(random_seed);
-
 from utils import cuda_device
 from utils.cuda_device import to_device, DeviceDataLoader
 from utils.dataset import ArcFaceDataset
 from utils.network import ResNet50, ResNet101, ResNet152
 from utils.losses import CosFace, ArcFace, ElasticCosFace, ElasticArcFace
 from utils.plots import plot_accuracies, plot_losses
+from utils.display import make_predictions
+
+random_seed = 42
+torch.manual_seed(random_seed)
    
 device = cuda_device.get_default_device()
 
-root_dir1 = "faces_emore/" #For Ubuntu
+root_dir1 = "../MyElasticFace/faces_emore/" #For Ubuntu
 root_dir2 = "D:/Face/faces_emore/" #For Windows
+
 
 dataset = ArcFaceDataset(root_dir1)
 
-
 #Limiting the dataset for computation purposes
-lim_factor = 1 #Set to 1 for using the entire dataset
+lim_factor = 0.0001 #Set to 1 for using the entire dataset
 lim_size = int(lim_factor * len(dataset))
 lim_dataset_size = len(dataset) - lim_size
-
 large_ds, lim_ds = random_split(dataset, [lim_dataset_size, lim_size])
-
 
 test_factor = 0.1
 test_size = int(test_factor * len(lim_ds))
@@ -65,7 +63,6 @@ val_size = int(val_factor * len(lim_ds))
 train_size = len(train_ds) - val_size
 train_ds, val_ds = random_split(train_ds, [train_size, val_size])
 
-
 batch_size=128
 
 train_dl = DataLoader(train_ds, batch_size, shuffle=True, num_workers=4, pin_memory=True)
@@ -75,7 +72,6 @@ test_dl = DataLoader(test_ds, batch_size, num_workers=4, pin_memory=True)
 train_dl = DeviceDataLoader(train_dl, device)
 val_dl = DeviceDataLoader(val_dl, device)
 test_dl = DeviceDataLoader(test_dl, device)
-
 
 
 model = ResNet152(85742)
@@ -117,10 +113,6 @@ def loss_batch(model, loss_func, xb, yb, opt=None, opt_out=None, metric=None):
     if metric is not None:
         #compute the metric
         metric_result = metric(preds, yb)
-    
-    #print(loss.is_cuda)
-    #print(xb.is_cuda)
-    #print(metric_result.is_cuda)
         
     return loss.item(), len(xb), metric_result
     
@@ -145,7 +137,6 @@ def evaluate(model, loss_fn, valid_dl, metric=None):
     
     
 def fit(epochs, model, loss_fn, train_dl, valid_dl, lr=None, lr_func=None, metric=None, opt_fn=None):
-    
     train_losses, train_metrics, val_losses, val_metrics = [], [], [], []
     
     #instantiate the optimizer
@@ -190,7 +181,7 @@ def fit(epochs, model, loss_fn, train_dl, valid_dl, lr=None, lr_func=None, metri
         val_metrics.append(val_metric)
         
         #Checkpointing the model - saving every 'n' epochs
-        checkpoint_path = "Checkpoints/model_06_Mar_" +str(epoch)+".pt"
+        checkpoint_path = "Checkpoints/model_10_Mar_" +str(epoch)+".pt"
         
         if (epoch%2 == 0):
             torch.save({
@@ -224,9 +215,10 @@ def accuracy(outputs, labels):
     _, preds = torch.max(outputs, dim=1)
     return torch.sum(preds == labels).item() / len(preds)
     
+    
 val_loss, _, val_acc = evaluate(model, loss_Function, val_dl, metric=accuracy) #metric=None
 #print('Loss: {:.4f}'.format(val_loss))
-print('Befor training ... Val loss: {:.4f}, Val accuracy: {:.4f}'.format(val_loss, val_acc))
+print('Before training ... Val loss: {:.4f}, Val accuracy: {:.4f}'.format(val_loss, val_acc))
 
 opt_func = torch.optim.SGD
 
@@ -239,8 +231,10 @@ def lr_step_func(epoch):
 def unit_lr(epoch):
     return 1
     
-num_epochs = 20
+    
+num_epochs = 3
 lr = 0.001
+
 
 history = fit(epochs=num_epochs, model=model, loss_fn=loss_Function, 
               train_dl=train_dl, valid_dl=val_dl, lr=lr, lr_func=lr_step_func, 
@@ -252,13 +246,11 @@ train_losses, train_metrics, val_losses, val_metrics = history
 
 # Creating a new data frame
 newDataframe = pd.DataFrame()
-filename = "06_Mar_outputs_data.xlsx"
-
+filename = "10_Mar_outputs_data.xlsx"
 newDataframe['Train Loss'] = train_losses
 newDataframe['Val Loss'] = val_losses
 newDataframe['Train Acc.'] = train_metrics
 newDataframe['Val Acc.'] = val_metrics
-
 # Converting the data frame to an excel file
 newDataframe.to_excel(filename, index = False)
 
@@ -266,13 +258,13 @@ newDataframe.to_excel(filename, index = False)
 plot_accuracies(num_epochs, train_metrics, val_metrics)
 plot_losses(num_epochs, train_losses, val_losses)
 
+
 result = evaluate(model, loss_Function, test_dl, accuracy)
 print(result)
 
 
 #Save the latest model
-
-saved_path = "Checkpoints/model_06_Mar_" +str(num_epochs)+".pt"
+saved_path = "Checkpoints/model_10_Mar_" +str(num_epochs)+".pt"
 
 torch.save({
     'epoch': num_epochs,
@@ -283,3 +275,6 @@ torch.save({
     'train_acc': train_metrics[-1],
     'val_acc': val_metrics[-1],
 }, saved_path)
+
+
+make_predictions(model, new_logits, test_dl, 30, root_dir1)
