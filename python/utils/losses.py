@@ -29,11 +29,11 @@ from mxnet import recordio
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-import cuda_device
-device = cuda_device.get_default_device()
+from utils.cuda_device import get_default_device
+device = get_default_device()
 
 random_seed = 42
-torch.manual_seed(random_seed);
+torch.manual_seed(random_seed)
 
 
 class CosFace(nn.Module):
@@ -127,6 +127,3 @@ class ElasticArcFace(nn.Module):
         cos_theta[index] += m_hot
         cos_theta.cos_().mul_(self.s)
         return cos_theta
-    
-    
-

@@ -27,7 +27,7 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 random_seed = 42
-torch.manual_seed(random_seed);
+torch.manual_seed(random_seed)
 
 
 def get_default_device():
@@ -37,11 +37,13 @@ def get_default_device():
     else:
         return torch.device('cpu')
 
+
 def to_device(data, device):
     """Move tensor(s) to chosen device"""
     if isinstance(data, (list,tuple)):
         return [to_device(x, device) for x in data]
     return data.to(device, non_blocking=True) #, dtype=torch.float
+
 
 class DeviceDataLoader():
     """Wrap a dataloader to move data to a device"""

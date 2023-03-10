@@ -29,14 +29,14 @@ from mxnet import recordio
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-import cuda_device
+from utils.cuda_device import get_default_device
 
 random_seed = 42
-torch.manual_seed(random_seed);
+torch.manual_seed(random_seed)
 
-        
-device = cuda_device.get_default_device()
+device = get_default_device()
 print("Current device is: ", device)
+
 
 class ArcFaceDataset(Dataset):
     def __init__(self, root_dir):
@@ -79,6 +79,3 @@ class ArcFaceDataset(Dataset):
 
     def __len__(self):
         return len(self.imgidx)
-    
-    
-

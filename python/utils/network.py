@@ -23,18 +23,14 @@ from torchvision.datasets.utils import download_url
 from torch.utils.data import random_split, DataLoader, Dataset
 from torchsummary import summary
 
-import mxnet as mx
-from mxnet import recordio
-
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+from utils.cuda_device import get_default_device
+
+device = get_default_device()
 random_seed = 42
-torch.manual_seed(random_seed);
-
-import cuda_device
-device = cuda_device.get_default_device()
-
+torch.manual_seed(random_seed)
 
 
 def conv_2d(ni, nf, ks, stride=1):
@@ -95,7 +91,6 @@ class ResBlock2(nn.Module):
         x = self.conv2(x)
         x = self.conv3(x) * 0.2
         return x.add_(r)
-        
         
 def make_group(N, ni, nf, stride):
     start = ResBlock(ni, nf, stride)
