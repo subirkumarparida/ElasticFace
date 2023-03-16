@@ -58,7 +58,7 @@ def fetch_pred_image(imgrec, lst, idx):
     
 def prepare_plot(image, origTarget, predTarget, size, imgrec, lst):
     plt.rcParams["figure.figsize"] = (15*size/25, 15*size/5)
-    rand = np.random.randint(0, 50, size)
+    rand = np.random.randint(0, 128, size)
     
     for i in range(size):
         img_fetch = fetch_pred_image(imgrec, lst, predTarget[rand[i]])
@@ -82,7 +82,7 @@ def prepare_plot(image, origTarget, predTarget, size, imgrec, lst):
     plt.show()
     
     
-def make_predictions(model, new_logits, dataLoader, size, data_dir):
+def make_predictions(model, new_logits, dataLoader, data_dir, size=5):
     with torch.no_grad():
         #set the model in evaluation mode
         model.eval()
@@ -92,26 +92,23 @@ def make_predictions(model, new_logits, dataLoader, size, data_dir):
             pred = new_logits(features, yb)
             
             softmax = F.softmax(pred, dim=1)
-            #sum_check = torch.sum(softmax, dim=1)
-            #print(sum_check)
             max_value = torch.max(softmax, dim=1)[1]
-            ##print("Predicted labels: ", max_value)
-            ##print("Actual labels: ", yb)
-            
             matches = max_value == yb
             #print(matches)
-
+        
             invTransform = transforms.Compose(
                 [transforms.Normalize(mean=[0., 0., 0.], std=[1/0.5, 1/0.5, 1/0.5]),
                  transforms.Normalize(mean=[-0.5, -0.5, -0.5], std=[1, 1, 1]),
                 ])
-                
             xb = invTransform(xb)
             xb = xb.cpu().numpy() #Convert the tensor input into a numpy object
             xb = np.transpose(xb, (0, 2, 3, 1)) #Shifting the channel into the 3rd dimension       
+            
             yb = yb.cpu().numpy() #Convert the tensor input into a numpy object
             max_value = max_value.cpu().numpy() #Convert the tensor input into a numpy object
-
+            
             imgrec, lst = create_list(data_dir)
-            prepare_plot(xb, yb, max_value, size, imgrec, lst)
+
+            prepare_plot(xb, yb, max_value, imgrec, lst, size)
+            
             break

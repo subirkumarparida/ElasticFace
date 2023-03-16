@@ -105,7 +105,7 @@ class Flatten(nn.Module):
         return x.view(x.size(0), -1)
         
 class MyResNet(nn.Module):
-    def __init__(self, n_groups, N, n_classes, k=1, n_start=64):
+    def __init__(self, n_groups, N, k=1, n_start=64):
         super().__init__()
         #Increase channels
         self.layers = [conv_2d(3, 64, ks=7, stride=2)]
@@ -140,11 +140,11 @@ N_50 = [3, 4, 6, 3]
 N_101 = [3, 4, 23, 3]
 N_152 = [3, 8, 36, 3]
 
-def ResNet50(n_classes):
-    return MyResNet(4, N_50, n_classes, k=2)
+def ResNet50():
+    return MyResNet(4, N_50, k=2)
 
-def ResNet101(n_classes):
-    return MyResNet(4, N_101, n_classes, k=2)
+def ResNet101():
+    return MyResNet(4, N_101, k=2)
 
-def ResNet152(n_classes):
-    return MyResNet(4, N_152, n_classes, k=2)
+def ResNet152():
+    return MyResNet(4, N_152, k=2)
